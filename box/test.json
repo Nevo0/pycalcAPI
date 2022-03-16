@@ -1,0 +1,111 @@
+[
+    {
+        "id": 1,
+        "quantity": 1,
+        "material": "Plastic",
+        "status": "save",
+        "glands": {
+            "a": [
+                {
+                    "id": 76,
+                    "status": "save",
+                    "quantity": 1,
+                    "size": "m12",
+                    "typ": "pe_blue",
+                    "product": "Gland",
+                    "position": "a"
+                }
+            ]
+        },
+        "terminal": {},
+        "selectBox": [
+            {
+                "id": "2655b552-47d5-4df0-8b9a-1fae37533253",
+                "max_hubs_side_a_b": {
+                    "id": "93c11ca9-9e75-4696-99c3-5e7ada2502a0",
+                    "code": "CSE 080705P",
+                    "m12": 1,
+                    "m16": 1,
+                    "m20": 1,
+                    "m25": 0,
+                    "m32": 0,
+                    "m40": 0,
+                    "m50": 0,
+                    "m60": 0
+                },
+                "max_hubs_side_c_d": {
+                    "id": "a3ae79d2-76c8-43a9-97ce-adbccd10b281",
+                    "code": "CSE 080705P",
+                    "m12": 1,
+                    "m16": 1,
+                    "m20": 1,
+                    "m25": 0,
+                    "m32": 0,
+                    "m40": 0,
+                    "m50": 0,
+                    "m60": 0
+                },
+                "termina": {
+                    "id": "a5cb8ee4-977c-474d-9bce-3038ed9d295e",
+                    "code": "CSE 080705P",
+                    "t15": 11,
+                    "t25": 4,
+                    "t40": 0,
+                    "t60": 0,
+                    "t100": 0,
+                    "t160": 0,
+                    "t350": 0,
+                    "t500": 0,
+                    "t700": 0,
+                    "t950": 0
+                },
+                "name": "CSE 080705P",
+                "code": "CSE 080705P",
+                "overall_dimension_d": 0,
+                "overall_dimension_w": 0,
+                "overall_dimension_h": 0,
+                "internal_dimension_a": 0,
+                "internal_dimension_b": 0,
+                "internal_dimension_c": 0,
+                "mounting_plate_d": 0,
+                "mounting_plate_e": 0,
+                "fixing_dimension_f": 0,
+                "fixing_dimensions_g": 0,
+                "fixing_dimensions_screw": "M 4/6",
+                "title": null,
+                "weight": 0,
+                "price": 0,
+                "quantity": 0,
+                "ambient_temperature": "\u201340\u00b0C +60\u00b0C",
+                "degree_of_protection": "IP66",
+                "class_of_protection": "II",
+                "temperature_class": "T6/T5/T4",
+                "maximum_voltage": "1100 V",
+                "maximum_current": "234 A",
+                "mechanical_riskn": "7 J",
+                "color": "Black",
+                "type_of_protection": "Ex-e",
+                "material": "Glass fiber reinforced polyester resin",
+                "marking_gb_terminal_boxes": "II 2GD Ex e ia IIC T6/T5 Gb",
+                "marking_db_terminal_boxes": "Ex tb IIIC T85/T100\u00b0C Db",
+                "marking_gb_terminal_control_stations": "II 2GD Ex d e [ia/ib] mb IIC T6/T5/T4 Gb",
+                "marking_db_terminal_control_stations": "Ex tb IIIC T85/T100/T135\u00b0C Db",
+                "note": "",
+                "create": "2021-11-05T10:01:47.329000Z",
+                "update": "2021-11-23T11:33:54.811000Z",
+                "description": "",
+                "description_function": "",
+                "description_constructin": "",
+                "description_accessories": "",
+                "description_protection": "",
+                "conformity": null,
+                "protection_category": "suitable for Zone 1- 2 (gas) and Zone 21 - 22 (dust)",
+                "completed": false,
+                "option": null,
+                "certificate": null,
+                "maximum_power_dissipation": null,
+                "checked": true
+            }
+        ]
+    }
+]
