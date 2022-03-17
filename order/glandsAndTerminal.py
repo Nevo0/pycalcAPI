@@ -33,11 +33,14 @@ def getGlands(request):
                 # result = map(print_components, objectTerminals)
 
                 objectComponentsTerminals= print_componentsTerminals(objectTerminals)
-                objectComponentsglands= print_componentsGlands(objectGlands)
+                objectComponentsglands= print_componentsGlands(objectGlands, objectComponentsTerminals)
                 print(objectComponentsTerminals)
-                print(objectComponentsglands)
+                # print(objectTerminals)
+
                 # sptawdzić czy to co już mamy jest !!!
                 # checkIfIsTerminalmodel
+                # if sala in beer.salas_set.all():
+                #     pass
 
 
                 pass
@@ -69,8 +72,15 @@ def getTerminals(request):
         "getTerminals"
     ]
     return Response(routes)
-def test(x):
-    print(x)
+def  filtered_list_none(sample_list):
+    # initialize filtered list
+    filtered_list2 = []
+
+    # Using for loop
+    for ele in sample_list:
+        if ele != None:
+            filtered_list2.append(ele)
+    
 def print_gland(wall,object):
     
     if len(object)>0:
@@ -81,35 +91,42 @@ def print_terminals(wall,object):
         return handlerTerminals(object)
                           
 def print_componentsTerminals(the_list):
+    list_v= []   
+    for each_items in the_list:
+        if each_items != None:            
+            if Component.objects.filter(produkt_terminal__in=each_items).exists():
+                item=Component.objects.filter(produkt_terminal__in=each_items)
+                # print(item)
+                for el in item:   
+                    # temp_list.append(el.name)   
+                    if(len(el.produkt_terminal.all())) == (len(each_items)):                    
+                        if not el in list_v:
+                            list_v.append(el)
+        
+    if not list_v:
+        return
+    return list_v
+
+def print_componentsGlands(the_list, objectComponentsTerminals):
+    list=filtered_list_none(the_list)
+    print(list)
+    print(the_list)
     list_v= []
     for each_items in the_list:
-        print(each_items)
-        item_list = Component.objects.filter(produkt_terminal__in=each_items)
-        list_v.append(item_list)
-        
-    # print(list_v)
-    return list_v[0]
-def print_componentsGlands(the_list):
-    list_v= []
-    for each_items in the_list:
-        # print(each_items)
-        item_lista = Component.objects.filter(product_gladns_site_a__in=each_items)
-        item_listb = Component.objects.filter(product_gladns_site_b__in=each_items)
-        item_listc = Component.objects.filter(product_gladns_site_c__in=each_items)
-        item_listd = Component.objects.filter(product_gladns_site_d__in=each_items)
-        # if len(item_listb)>0:
-        #     print(len(item_listb))
-        #     print((item_listb))
-
-
-        # print(len(item_lista))
-        # print(len(item_listc))
-        # print(len(item_listd))
-
-        list_v.append(item_lista)
-        
-    # print(list_v)
-    return list_v[0]
+        if each_items != None:
+            # print(each_items)
+            if Component.objects.filter(produkt_glands__in=each_items).exists():
+                item=Component.objects.filter(produkt_glands__in=each_items)
+                
+                temp_list=[]
+                for el in item:   
+                    # temp_list.append(el.name)   
+                    if(len(el.produkt_glands.all())) == (len(each_items)):                    
+                        if not el in list_v:
+                            list_v.append(el)
+    if not list_v:
+        return
+    return list_v
                  
 
 
