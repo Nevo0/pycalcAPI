@@ -33,9 +33,18 @@ def getGlands(request):
                 # result = map(print_components, objectTerminals)
 
                 objectComponentsTerminals= print_componentsTerminals(objectTerminals)
-                objectComponentsglands= print_componentsGlands(objectGlands, objectComponentsTerminals)
+                objectComponentsglands= print_componentsGlands(objectGlands)
                 print(objectComponentsTerminals)
-                # print(objectTerminals)
+                print(objectComponentsglands)
+                # jesli coś sie zgadza to nie tworzymy jesli nie zgadza to tworzymy 
+                # jesli jedno albo drugie ma None tworzymy nowey
+                if objectComponentsTerminals == None or objectComponentsglands == None:
+                    print('doroboty')
+                    objectGlandslist=sum(objectGlands, []) 
+                    addComponent( objectGlandslist, objectTerminals)
+                else:
+                    print(set(objectComponentsTerminals) - set(objectComponentsglands))
+                
 
                 # sptawdzić czy to co już mamy jest !!!
                 # checkIfIsTerminalmodel
@@ -65,6 +74,49 @@ def getGlands(request):
         "glands"
     ]
     return Response(routes)
+
+def addComponent( glands , terminals):
+    print( )   
+    
+    
+    # print( newlist)
+    # print( terminals)    
+    price= 0
+    name=''
+    # component = Component()    
+    if glands is not None: 
+        price_x=create_price(glands)
+        print(type(price_x))
+        price = price + price_x
+        name = name + create_name(glands)
+        newlistglands = sorted(glands, key=lambda x: x.name, reverse=False)
+    if terminals is not None: 
+        price = price + create_price(terminals)
+        name = name + create_name(terminals)
+        print(type(terminals))
+        newlistterminals = sorted(terminals, key=lambda x: x.name, reverse=False)
+    print(price)
+    print(name)
+    
+
+    # component.save()
+    # return component
+def create_price(glandsOrTerminals):
+    price= 0
+    if glandsOrTerminals != None:
+        print(type(glandsOrTerminals))
+        for element in glandsOrTerminals:
+            if element != None:                
+                price =price + element.price
+def create_name(glandsOrTerminals):
+    price= ''
+    if glandsOrTerminals != None:
+        for element in glandsOrTerminals:
+            print(type(element))
+            if element != None:                
+                price =price + element.name
+
+    return price
 @api_view(['GET', 'POST'])
 def getTerminals(request):
     print(request)
@@ -80,6 +132,7 @@ def  filtered_list_none(sample_list):
     for ele in sample_list:
         if ele != None:
             filtered_list2.append(ele)
+    return filtered_list2
     
 def print_gland(wall,object):
     
@@ -91,9 +144,11 @@ def print_terminals(wall,object):
         return handlerTerminals(object)
                           
 def print_componentsTerminals(the_list):
-    list_v= []   
+    list_v= []       
+    # print(the_list)
     for each_items in the_list:
-        if each_items != None:            
+        if each_items != None:      
+              
             if Component.objects.filter(produkt_terminal__in=each_items).exists():
                 item=Component.objects.filter(produkt_terminal__in=each_items)
                 # print(item)
@@ -102,28 +157,38 @@ def print_componentsTerminals(the_list):
                     if(len(el.produkt_terminal.all())) == (len(each_items)):                    
                         if not el in list_v:
                             list_v.append(el)
+        else:            
+            # sprawdzić czyt produkt_glands jest pusty 
+            if Component.objects.filter(produkt_terminal__isnull=True).exists():
+                item=Component.objects.filter(produkt_terminal__isnull=True)
+                list_v.append(item)
         
     if not list_v:
         return
     return list_v
 
-def print_componentsGlands(the_list, objectComponentsTerminals):
-    list=filtered_list_none(the_list)
-    print(list)
-    print(the_list)
+def print_componentsGlands(the_list):
+    list=sum(the_list, [])    
+    # print(list)
     list_v= []
-    for each_items in the_list:
-        if each_items != None:
-            # print(each_items)
-            if Component.objects.filter(produkt_glands__in=each_items).exists():
-                item=Component.objects.filter(produkt_glands__in=each_items)
-                
-                temp_list=[]
-                for el in item:   
-                    # temp_list.append(el.name)   
-                    if(len(el.produkt_glands.all())) == (len(each_items)):                    
-                        if not el in list_v:
-                            list_v.append(el)
+    
+    if list != None:        
+        if Component.objects.filter(produkt_glands__in=list).exists():
+            item=Component.objects.filter(produkt_glands__in=list)    
+                  
+            temp_list=[]
+            for el in item:   
+                # temp_list.append(el.name)   
+                if(len(el.produkt_glands.all())) == (len(list)):                    
+                    if not el in list_v:
+                        list_v.append(el)
+    else:
+        # sprawdzić czyt produkt_glands jest pusty 
+        if Component.objects.filter(produkt_glands__in=None).exists():
+            item=Component.objects.filter(produkt_glands__in=list)
+            list_v.append(item)
+            pass
+    # print(list_v)  
     if not list_v:
         return
     return list_v
@@ -220,7 +285,5 @@ def create_terminals(element, terminalInDB,checkinname, quantity,position):
 
 
  
-def create_price(size):
-    x = size.split("m")
-    return (int(x[1])*randrange(10,12)  )
+
 

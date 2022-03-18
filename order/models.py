@@ -153,7 +153,7 @@ class Component(models.Model):
     name = models.TextField( default="")    
     produkt_terminal= models.ManyToManyField(Terminals,  related_name='terminal_set', blank=True)
     produkt_glands= models.ManyToManyField(Gladns,  related_name='gland_set', blank=True)
-    additional_options = models.ManyToManyField(Additional,  related_name='additional_set')
+    additional_options = models.ManyToManyField(Additional,  related_name='additional_set', blank=True)
     additional_options2 = models.CharField(max_length=200, null=True, blank=True)  
     additional_options3 = models.CharField(max_length=200, null=True, blank=True)  
     price  = models.IntegerField(default=0)    
