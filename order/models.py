@@ -1,5 +1,4 @@
 from django.db import models
-from purchaser.models import Purchaser
 from box.models import Box
 
 class Purchaser(models.Model):
@@ -19,18 +18,15 @@ class Purchaser(models.Model):
     person_city = models.CharField(max_length=200, null=True, blank=True)
     person_country = models.CharField(max_length=200, null=True, blank=True)
     phone = models.IntegerField(default=0)
-    nip = models.IntegerField(default=0)
-    vat = models.IntegerField(default=0)
+    nip = models.PositiveIntegerField(default=0)
+    vat = models.PositiveIntegerField(default=0)
     name_name = models.CharField(max_length=200, null=True, blank=True)
     is_staf = models.BooleanField( default=False)
     is_activ = models.BooleanField( default=False)
     rodo = models.BooleanField( default=False)
     status_text = models.CharField(max_length=200, null=True, blank=True)
     status = models.BooleanField( default=False)
-    title = models.CharField(max_length=200, null=True, blank=True)    
-    weight = models.IntegerField(default=0)
-    price = models.IntegerField(default=0)
-    quantity = models.IntegerField(default=0)
+    title = models.CharField(max_length=200, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     note = models.TextField(max_length=200, null=True, blank=True)
     sys_note = models.TextField(max_length=200, null=True, blank=True)
@@ -38,37 +34,32 @@ class Purchaser(models.Model):
     update = models.DateTimeField(auto_now=True)    
     function = models.TextField(null=True, blank=True)    
     conformity = models.CharField(max_length=200, null=True, blank=True)
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+    def __str__(self):        
         return self.name
         
 class Brand(models.Model):
     name = models.CharField(max_length=200, default="")
     create = models.DateTimeField(auto_now_add=True)
     update = models.DateTimeField(auto_now=True) 
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+    def __str__(self):        
         return self.name
 class SizeGladn(models.Model):
     name = models.CharField(max_length=200, default="")
     create = models.DateTimeField(auto_now_add=True)
     update = models.DateTimeField(auto_now=True) 
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+    def __str__(self):        
         return self.name
 class SizeTerminal(models.Model):
     name = models.CharField(max_length=200, default="")
     create = models.DateTimeField(auto_now_add=True)
     update = models.DateTimeField(auto_now=True) 
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+    def __str__(self):        
         return self.name
 class TypeTerminal(models.Model):
     name = models.CharField(max_length=200, default="")
     create = models.DateTimeField(auto_now_add=True)
     update = models.DateTimeField(auto_now=True) 
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+    def __str__(self):        
         return self.name
 
 class Gladn(models.Model):
@@ -89,9 +80,9 @@ class Gladn(models.Model):
     orderNr2070 = models.CharField(max_length=200, default="", null=True, blank=True)
     orderNr5570 = models.CharField(max_length=200, default="", null=True, blank=True)
     price  = models.IntegerField(default=0)    
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+    def __str__(self):        
         return self.name
+
 class Terminal(models.Model):
     name = models.CharField(max_length=200, default="")
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, null=True, blank=True)  
@@ -115,8 +106,7 @@ class Terminal(models.Model):
     orderNr2070 = models.CharField(max_length=200, default="", null=True, blank=True)
     orderNr5570 = models.CharField(max_length=200, default="", null=True, blank=True)
     price  = models.IntegerField(default=0)    
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+    def __str__(self):        
         return self.name
 
     
@@ -126,27 +116,26 @@ class Gladns(models.Model):
     quantity = models.IntegerField(default=0)  
     position = models.CharField(max_length=10, default="")
     price  = models.IntegerField(default=0)    
-    brand = models.ForeignKey(Brand, on_delete=models.CASCADE, null=True, blank=True)  
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+     
+    def __str__(self):        
         return self.name
+
 class Terminals(models.Model):
     name = models.CharField(max_length=200, default="")
     terminal= models.ForeignKey(Terminal, on_delete=models.CASCADE, null=True, blank=True)    
     quantity = models.IntegerField(default=0)   
     position = models.CharField(max_length=10, default="") 
     price  = models.IntegerField(default=0)    
-    brand = models.ForeignKey(Brand, on_delete=models.CASCADE, null=True, blank=True)  
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+    
+    def __str__(self):        
         return self.name
+
 class Additional(models.Model):
     name = models.CharField(max_length=200, default="")
     description = models.CharField(max_length=200, null=True, blank=True) 
     options = models.CharField(max_length=200, null=True, blank=True) 
-    brand = models.ForeignKey(Brand, on_delete=models.CASCADE, null=True, blank=True)  
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+     
+    def __str__(self):        
         return self.name
 
 class Component(models.Model):
@@ -159,8 +148,7 @@ class Component(models.Model):
     price  = models.IntegerField(default=0)    
     create = models.DateTimeField(auto_now_add=True)
     update = models.DateTimeField(auto_now=True) 
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+    def __str__(self):        
         return self.name
 
 class Product(models.Model):
@@ -171,8 +159,7 @@ class Product(models.Model):
     component = models.ManyToManyField(Component)
     create = models.DateTimeField(auto_now_add=True)
     update = models.DateTimeField(auto_now=True) 
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+    def __str__(self):        
         return self.name
     
 # Create your models here.
@@ -180,8 +167,8 @@ class Order(models.Model):
     name = models.CharField(max_length=200, default="")    
     purchaser = models.ForeignKey(Purchaser, on_delete=models.CASCADE)
     product = models.ManyToManyField(Product)
-    price = models.IntegerField(default=0)
-    vat = models.IntegerField(default=0)
+    price = models.PositiveIntegerField(default=0)
+    vat = models.PositiveIntegerField(default=0)
     coments = models.CharField(max_length=300, null=True, blank=True) 
     title = models.CharField(max_length=200, null=True, blank=True)  
     status_inf = models.CharField(max_length=200, default="",null=True, blank=True)
@@ -207,6 +194,5 @@ class Order(models.Model):
     create = models.DateTimeField(auto_now_add=True)
     update = models.DateTimeField(auto_now=True) 
     
-    def __str__(self):
-        # ustawia title w panelu damina jaki podajemy w title
+    def __str__(self):        
         return self.name

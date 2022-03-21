@@ -40,8 +40,4 @@ def seveOrder(request):
         else:
             return Response(serializer.errors)
 
-        # for key, value in request.POST.items():
-        #     array.append(key)
-        #     array.append(value)
-        return Response(array)
     return Response(routes)

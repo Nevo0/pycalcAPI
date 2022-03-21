@@ -76,25 +76,25 @@ def getGlands(request):
     return Response(routes)
 
 def addComponent( glands , terminals):
-    print( )   
-    
-    
-    # print( newlist)
-    # print( terminals)    
+      
     price= 0
     name=''
     # component = Component()    
     if glands is not None: 
         price_x=create_price(glands)
-        print(type(price_x))
+        
         price = price + price_x
-        name = name + create_name(glands)
         newlistglands = sorted(glands, key=lambda x: x.name, reverse=False)
+        name = name + create_name(newlistglands)
     if terminals is not None: 
         price = price + create_price(terminals)
         name = name + create_name(terminals)
-        print(type(terminals))
         newlistterminals = sorted(terminals, key=lambda x: x.name, reverse=False)
+        print(type(terminals))
+    if newlistterminals:
+        print(newlistterminals)
+    if glands:
+        print(glands)
     print(price)
     print(name)
     
@@ -103,20 +103,26 @@ def addComponent( glands , terminals):
     # return component
 def create_price(glandsOrTerminals):
     price= 0
-    if glandsOrTerminals != None:
-        print(type(glandsOrTerminals))
+    if glandsOrTerminals != None:        
         for element in glandsOrTerminals:
-            if element != None:                
+            if element != None: 
                 price =price + element.price
-def create_name(glandsOrTerminals):
-    price= ''
-    if glandsOrTerminals != None:
-        for element in glandsOrTerminals:
-            print(type(element))
-            if element != None:                
-                price =price + element.name
-
+    
     return price
+
+def create_name(glandsOrTerminals):
+    name= ''
+    if glandsOrTerminals != None:
+        for idx, element in enumerate(glandsOrTerminals):        
+            print((idx))
+            if element != None:   
+                if idx == 0:             
+                    name =name + element.name
+                else:
+                    name =name + "--"+ element.name
+    return name
+
+
 @api_view(['GET', 'POST'])
 def getTerminals(request):
     print(request)
@@ -168,24 +174,24 @@ def print_componentsTerminals(the_list):
     return list_v
 
 def print_componentsGlands(the_list):
-    list=sum(the_list, [])    
+    list_sum = sum(the_list, [])    
     # print(list)
     list_v= []
     
-    if list != None:        
-        if Component.objects.filter(produkt_glands__in=list).exists():
-            item=Component.objects.filter(produkt_glands__in=list)    
+    if list_sum != None:        
+        if Component.objects.filter(produkt_glands__in=list_sum).exists():
+            item=Component.objects.filter(produkt_glands__in=list_sum)    
                   
             temp_list=[]
             for el in item:   
                 # temp_list.append(el.name)   
-                if(len(el.produkt_glands.all())) == (len(list)):                    
+                if(len(el.produkt_glands.all())) == (len(list_sum)):                    
                     if not el in list_v:
                         list_v.append(el)
     else:
         # sprawdzić czyt produkt_glands jest pusty 
         if Component.objects.filter(produkt_glands__in=None).exists():
-            item=Component.objects.filter(produkt_glands__in=list)
+            item=Component.objects.filter(produkt_glands__in=list_sum)
             list_v.append(item)
             pass
     # print(list_v)  
