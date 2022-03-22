@@ -1,6 +1,7 @@
 from cmath import log
 from random import randrange
 from django.shortcuts import render
+from django.db.models import Count
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import json
@@ -24,88 +25,125 @@ def getGlands(request):
                 glands=element['glands']
                 terminals=element['terminal']
                 selectBox=element['selectBox']
+                # print(glands)
                
                 objectTerminals=list(map(lambda x: print_terminals(x,terminals[x]), terminals))
                 objectGlands=list(map(lambda x: print_gland(x,glands[x]), glands))
-                # print(type(objectGlands))
-                # print(objectTerminals)
-                # objectComponents=map(lambda x: print_components(x,objectTerminals[x]), objectTerminals)
-                # result = map(print_components, objectTerminals)
 
+                filtered_list_none_objectTerminals=filtered_list_none(objectTerminals)
+                filtered_list_none_objectGlands=filtered_list_none(objectGlands)
+                filtered_list_none_terminals_sum = sum(filtered_list_none_objectTerminals, [])  
+                filtered_list_none_glands_sum = sum(filtered_list_none_objectGlands, [])  
+
+                
                 objectComponentsTerminals= print_componentsTerminals(objectTerminals)
                 objectComponentsglands= print_componentsGlands(objectGlands)
-                print(objectComponentsTerminals)
-                print(objectComponentsglands)
-                # jesli coś sie zgadza to nie tworzymy jesli nie zgadza to tworzymy 
-                # jesli jedno albo drugie ma None tworzymy nowey
-                if objectComponentsTerminals == None or objectComponentsglands == None:
-                    print('doroboty')
-                    objectGlandslist=sum(objectGlands, []) 
-                    addComponent( objectGlandslist, objectTerminals)
+
+                # print(filtered_list_none_terminals_sum)
+                # print(filtered_list_none_glands_sum)
+                len_terminals=len(filtered_list_none_terminals_sum)
+                len_glands=len(filtered_list_none_glands_sum)
+                component = Component.objects.filter(
+                    produkt_glands__in=filtered_list_none_glands_sum,                    
+                )
+                
+                
+                len_terminals=len(filtered_list_none_terminals_sum)
+                len_glands=len(filtered_list_none_glands_sum)
+                component = Component.objects.filter(
+                    produkt_glands__in=filtered_list_none_glands_sum,                    
+                )
+                component_filter = Component.objects.annotate(count=Count('produkt_glands')).filter(count=len(filtered_list_none_glands_sum))
+                component_filter = component_filter.annotate(count=Count('produkt_terminal')).filter(count=len(filtered_list_none_terminals_sum))
+                if len_terminals>0:                    
+                    component_filter = component_filter.filter(
+                        produkt_terminal__in=filtered_list_none_terminals_sum,                    
+                    )
+                if len_glands>0:                    
+                    component_filter = component_filter.filter(
+                            produkt_glands__in=filtered_list_none_glands_sum,                    
+                        )                
+                
+                # print(component_filter2)
+                len_component_filter=len(component_filter)
+                # print(len_component_filter)
+                
+                if len_component_filter == 1:
+                    component_filter= component_filter.first()
+                    print(component_filter)
+                    # jest taki w bazie 
+                    pass
+                elif len_component_filter == 0:
+                    objectGlands=filtered_list_none(objectGlands)
+                    # objectTerminals=filtered_list_none(objectTerminals)
+                    # print("objectGlands")
+                    objectGlandslist=sum(objectGlands, [])  
+                    component_filter =addComponent( objectGlandslist, objectTerminals)
+                    # create components
+                    pass
                 else:
-                    print(set(objectComponentsTerminals) - set(objectComponentsglands))
-                
-
-                # sptawdzić czy to co już mamy jest !!!
-                # checkIfIsTerminalmodel
-                # if sala in beer.salas_set.all():
-                #     pass
-
-
-                pass
-                # print("-----------------------------")
-                # print(objectComponentsTerminals[0].exclude('name'))
-                # print(objectComponentsTerminals[0].values()[1])
-                # print(objectComponentsTerminals[0].values()[2])
-                # print("-----------------------------")
-                # print(objectComponentsTerminals[0].values_list())
-                # print("-----------------------------0")
-                # print(objectComponentsTerminals)
-                # print("-----------------------------")
-                # print("-----------------------------")
-
-                    
-                
-                
-                
-                # print(loads[0]['code'])
-    
+                    print('')
+                    pass
+                    # jakas maskra
+                # print(component_filter)
+                product=addProduct( component_filter , selectBox)
     routes = [
         "glands"
     ]
     return Response(routes)
 
+def addProduct( matches , selectBox):
+    print(selectBox[0])
 def addComponent( glands , terminals):
-      
+    # print(glands)
+    # print(terminals)
+    newlistterminals =None
+    newlistglands=None
     price= 0
     name=''
-    # component = Component()    
-    if glands is not None: 
-        price_x=create_price(glands)
-        
+    filtered_list_none_gland=filtered_list_none(glands)
+    filtered_list_none_terminals=filtered_list_none(terminals)    
+    # filtered_list_none_gland = sum(filtered_list_none_gland, [])   
+    filtered_list_none_terminals = sum(filtered_list_none_terminals, []) 
+    
+    if filtered_list_none_gland is not None and len(glands) > 0: 
+        price_x=create_price(filtered_list_none_gland)        
         price = price + price_x
-        newlistglands = sorted(glands, key=lambda x: x.name, reverse=False)
+        newlistglands = sorted(filtered_list_none_gland, key=lambda x: x.name, reverse=False)
         name = name + create_name(newlistglands)
-    if terminals is not None: 
-        price = price + create_price(terminals)
-        name = name + create_name(terminals)
-        newlistterminals = sorted(terminals, key=lambda x: x.name, reverse=False)
-        print(type(terminals))
+    if filtered_list_none_terminals is not None and len(filtered_list_none_terminals) > 0: 
+        newlistterminals = sorted(filtered_list_none_terminals, key=lambda x: x.name, reverse=False)
+        price = price + create_price(newlistterminals)        
+        if len(name) > 1  and len(terminals)>0:
+            name = name +"--" +create_name(newlistterminals)
+        else:
+            name = name + create_name(newlistterminals)
+    component = Component(name =name,price=price)
+    component.save()
+     
+    # print("test")
+
     if newlistterminals:
-        print(newlistterminals)
-    if glands:
-        print(glands)
-    print(price)
-    print(name)
+        # print(newlistterminals)
+        component.produkt_terminal.set(newlistterminals)
+        
+    if newlistglands:
+        # print(newlistglands)
+        component.produkt_glands.set(glands)
+        
+    # print(price)
+    # print(name)
     
 
-    # component.save()
-    # return component
+    component.save()
+    return component
 def create_price(glandsOrTerminals):
+    
     price= 0
     if glandsOrTerminals != None:        
         for element in glandsOrTerminals:
             if element != None: 
+                # print(element.price)    
                 price =price + element.price
     
     return price
@@ -114,7 +152,7 @@ def create_name(glandsOrTerminals):
     name= ''
     if glandsOrTerminals != None:
         for idx, element in enumerate(glandsOrTerminals):        
-            print((idx))
+            # print((idx))
             if element != None:   
                 if idx == 0:             
                     name =name + element.name
@@ -153,8 +191,7 @@ def print_componentsTerminals(the_list):
     list_v= []       
     # print(the_list)
     for each_items in the_list:
-        if each_items != None:      
-              
+        if each_items != None:                 
             if Component.objects.filter(produkt_terminal__in=each_items).exists():
                 item=Component.objects.filter(produkt_terminal__in=each_items)
                 # print(item)
@@ -166,19 +203,19 @@ def print_componentsTerminals(the_list):
         else:            
             # sprawdzić czyt produkt_glands jest pusty 
             if Component.objects.filter(produkt_terminal__isnull=True).exists():
-                item=Component.objects.filter(produkt_terminal__isnull=True)
+                item=Component.objects.filter(produkt_terminal__isnull=True)                                
                 list_v.append(item)
         
     if not list_v:
         return
     return list_v
 
-def print_componentsGlands(the_list):
-    list_sum = sum(the_list, [])    
-    # print(list)
-    list_v= []
-    
-    if list_sum != None:        
+def print_componentsGlands(the_list):    
+    filterlist=filtered_list_none(the_list)    
+    list_sum = sum(filterlist, [])   
+    list_v= []    
+
+    if list_sum != None and len(list_sum) >0:        
         if Component.objects.filter(produkt_glands__in=list_sum).exists():
             item=Component.objects.filter(produkt_glands__in=list_sum)    
                   
@@ -189,10 +226,15 @@ def print_componentsGlands(the_list):
                     if not el in list_v:
                         list_v.append(el)
     else:
+        
         # sprawdzić czyt produkt_glands jest pusty 
-        if Component.objects.filter(produkt_glands__in=None).exists():
-            item=Component.objects.filter(produkt_glands__in=list_sum)
+        if Component.objects.filter(produkt_glands__isnull=True).exists():
+            
+            item=Component.objects.filter(produkt_glands__isnull=True)
             list_v.append(item)
+            pass
+        else:
+            
             pass
     # print(list_v)  
     if not list_v:
@@ -207,20 +249,17 @@ def create_gland(size,typ,checkinname):
         sizeGland= SizeGladn.objects.filter(name=size).first()
         setGlandToDB = Gladn(name = checkinname, type = typ, material = "plastic",size= sizeGland, price =price) 
         # SEND_EMEIL aby uzupełnić prioce
-        # print(setGlandToDB)                               
         setGlandToDB.save()
+        print(setGlandToDB.price)                               
         return setGlandToDB
     
 
-def create_glands(element, glandInDB,checkinname, quantity,position):
-    price= glandInDB.price * quantity * 2   
-    gladns = Gladns(name = checkinname+"__"+str(quantity)+"__"+position,  gladn=glandInDB, position = position , price=price, quantity=quantity)
-    gladns.save()
-    return gladns
+
 
 def handlerGlands(object):   
     lista=[]
-    for element in object:        
+    for element in object:  
+             
         size=  element['size']
         typ=  element['typ']
         quantity=  element['quantity']
@@ -234,16 +273,29 @@ def handlerGlands(object):
                 
                 lista.append(Gladns.objects.filter(name=checkinnameGlands).first()     )              
             else:
+                               
                 lista.append(create_glands(element, glandInDB,checkinname, quantity, position))
         else:
+            print("element") 
+            # print(element) 
+            
             var_create_gland=create_gland(size,typ, checkinname) 
+            print(var_create_gland)
+            
+            print("element3")
             lista.append(create_glands(element, var_create_gland,checkinname, quantity, position))
     return lista
+
+def create_glands(element, glandInDB,checkinname, quantity,position):
+    # print(element) 
+    # print(glandInDB.price) 
+    price= glandInDB.price * quantity * 2   
+    gladns = Gladns(name = checkinname+"__"+str(quantity)+"__"+position,  gladn=glandInDB, position = position , price=price, quantity=quantity)
+    gladns.save()
+    return gladns
 def handlerTerminals(object):   
     lista=[]
-    for element in object:  
-        
-        
+    for element in object:   
         size=  element['size']
         typ=  element['typ']
         quantity=  element['quantity']
@@ -274,9 +326,9 @@ def handlerTerminals(object):
 def create_terminal(size,typ,checkinname):    
     if SizeTerminal.objects.filter(name=size).exists():              
         sizeTerminal= SizeTerminal.objects.filter(name=size).first()
-        print(sizeTerminal)
+        # print(sizeTerminal)
         typeTerminal= TypeTerminal.objects.filter(name=typ).first()
-        print(typeTerminal)
+        # print(typeTerminal)
         setTerminalToDB = Terminal(name = checkinname, type = typeTerminal, material = "plastic",size= sizeTerminal, price =1)                              
         setTerminalToDB.save()
         return setTerminalToDB
