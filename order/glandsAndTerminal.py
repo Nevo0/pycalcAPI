@@ -5,7 +5,10 @@ from django.db.models import Count
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import json
-from order.models import Terminal, Terminals,Gladn, SizeGladn, Gladns,SizeTerminal,TypeTerminal, Component
+import datetime
+import uuid
+from box.models import Box
+from order.models import Product, Purchaser,Order, Terminal, Terminals,Gladn, SizeGladn, Gladns,SizeTerminal,TypeTerminal, Component
 
 
 @api_view(['GET', 'POST'])
@@ -13,8 +16,12 @@ def getGlands(request):
     array = []
     if request.method == "POST":
         panels = request.POST.get('panels')
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        company = request.POST.get('company')
+        nip = request.POST.get('nip')
         loads = json.loads(panels)
-
+        products=[]
         array.append(loads)
         # code=loads[0]['code']
         if len(loads)>0:
@@ -27,6 +34,7 @@ def getGlands(request):
                 selectBox=element['selectBox']
                 # print(glands)
                
+                
                 objectTerminals=list(map(lambda x: print_terminals(x,terminals[x]), terminals))
                 objectGlands=list(map(lambda x: print_gland(x,glands[x]), glands))
 
@@ -45,16 +53,23 @@ def getGlands(request):
                 len_glands=len(filtered_list_none_glands_sum)
                 component = Component.objects.filter(
                     produkt_glands__in=filtered_list_none_glands_sum,                    
-                )
-                
+                )               
                 
                 len_terminals=len(filtered_list_none_terminals_sum)
                 len_glands=len(filtered_list_none_glands_sum)
-                component = Component.objects.filter(
-                    produkt_glands__in=filtered_list_none_glands_sum,                    
-                )
-                component_filter = Component.objects.annotate(count=Count('produkt_glands')).filter(count=len(filtered_list_none_glands_sum))
-                component_filter = component_filter.annotate(count=Count('produkt_terminal')).filter(count=len(filtered_list_none_terminals_sum))
+                # print(filtered_list_none_glands_sum)
+                # print(filtered_list_none_terminals_sum)
+                # print(len_glands)
+                # print(len_terminals)
+               
+                component_filter = Component.objects.annotate(count=Count('produkt_glands')).filter(count=len_glands)
+                # print(component_filter)  
+                
+                component_filter = component_filter.annotate(count=Count('produkt_terminal')).filter(count=len_terminals)
+                # print(component_filter)    
+                # print(component_filter[0].produkt_terminal.all())
+                      
+
                 if len_terminals>0:                    
                     component_filter = component_filter.filter(
                         produkt_terminal__in=filtered_list_none_terminals_sum,                    
@@ -66,11 +81,11 @@ def getGlands(request):
                 
                 # print(component_filter2)
                 len_component_filter=len(component_filter)
-                # print(len_component_filter)
+                
                 
                 if len_component_filter == 1:
                     component_filter= component_filter.first()
-                    print(component_filter)
+                    # print(component_filter)
                     # jest taki w bazie 
                     pass
                 elif len_component_filter == 0:
@@ -82,18 +97,87 @@ def getGlands(request):
                     # create components
                     pass
                 else:
-                    print('')
+                    print('jakas maskra')
+                    component_filter= component_filter.first()
                     pass
                     # jakas maskra
                 # print(component_filter)
-                product=addProduct( component_filter , selectBox)
+                product=addProduct( component_filter , selectBox, quantity)
+                # print(product) 
+                products.append(product)
+            # print(loads)
+            
+           
+            getPurchaser=addPurchaser(name ,email, company, nip)
+            addOrder(getPurchaser, products)
+
     routes = [
         "glands"
     ]
     return Response(routes)
+def addOrder(purchaser, products):
+    time= datetime.datetime.now().strftime ("%Y-%m-%d--%H-%M-%S")    
+    emial= purchaser.email
+    name= time +"__" +emial
+    price=oPrice(products)
+    order=Order(name=name, price=price , vat= 0 ,purchaser=purchaser)
+    order.save()
+    order.product.set(products)
+    return
+    
+def oPrice(purchaser):
+    price=0
+    for element in purchaser:
+        price =price + element.price
+    return price
+def addPurchaser(name ,email, company, nip):
+    pName=purchaserName(name ,email)
+    try:
+       purchaser=Purchaser.objects.get(name=pName)
+    except Purchaser.DoesNotExist:
+        purchaser = Purchaser(name= pName,email=email, company_name=company, nip=nip)
+        purchaser.save()
+    # purchaser.component.set([component])
+    return purchaser
 
-def addProduct( matches , selectBox):
-    print(selectBox[0])
+    pass
+def purchaserName(name,email):
+    namep= name + "__"+ email
+    return namep
+    pass
+
+def addProduct( component , selectBox, quantity):
+    id = uuid.UUID(selectBox[0])
+    # box=Box.objects.get(id=selectBox[0]).exist()
+    try:
+       box=Box.objects.get(id=id)
+    except Box.DoesNotExist:
+        print("tu trzeba coś wymyślić bo nie może być takiej sytuacji ze nie ma boxa")
+        box = None
+    name=createProduktName(component , box, quantity)
+    price=createProduktprice(component , box, quantity)    
+    try:
+       product=Product.objects.get(name=name)
+    except Product.DoesNotExist:
+        product = Product(name= name, box=box , quantity=quantity , price= price)
+        product.save()
+        product.component.set([component])
+    
+    return   product
+    
+     
+def createProduktprice(component , box, quantity):
+    componentPrice=component.price
+    boxPrice=box.price
+    print(componentPrice)
+    print(boxPrice)
+    price= (componentPrice+boxPrice)*quantity
+    return price
+
+def createProduktName(component , selectBox, quantity):    
+    name= selectBox.name+ "_" + str(quantity)+ "_" + component.name    
+    return name
+    pass
 def addComponent( glands , terminals):
     # print(glands)
     # print(terminals)
@@ -240,26 +324,11 @@ def print_componentsGlands(the_list):
     if not list_v:
         return
     return list_v
-                 
-
-
-def create_gland(size,typ,checkinname):
-    if SizeGladn.objects.filter(name=size).exists():
-        price = create_price(size)        
-        sizeGland= SizeGladn.objects.filter(name=size).first()
-        setGlandToDB = Gladn(name = checkinname, type = typ, material = "plastic",size= sizeGland, price =price) 
-        # SEND_EMEIL aby uzupełnić prioce
-        setGlandToDB.save()
-        print(setGlandToDB.price)                               
-        return setGlandToDB
-    
-
-
-
+  
 def handlerGlands(object):   
     lista=[]
     for element in object:  
-             
+        
         size=  element['size']
         typ=  element['typ']
         quantity=  element['quantity']
@@ -275,17 +344,23 @@ def handlerGlands(object):
             else:
                                
                 lista.append(create_glands(element, glandInDB,checkinname, quantity, position))
-        else:
-            print("element") 
-            # print(element) 
-            
+        else:         
             var_create_gland=create_gland(size,typ, checkinname) 
+            print("var_create_gland")
             print(var_create_gland)
-            
-            print("element3")
             lista.append(create_glands(element, var_create_gland,checkinname, quantity, position))
     return lista
 
+def create_gland(size,typ,checkinname):
+    if SizeGladn.objects.filter(name=size).exists():
+        print("xxx")
+        price = 10        
+        sizeGland= SizeGladn.objects.filter(name=size).first()
+        setGlandToDB = Gladn(name = checkinname, type = typ, material = "plastic",size= sizeGland, price =price) 
+        # SEND_EMEIL aby uzupełnić prioce
+        setGlandToDB.save()
+        # print(setGlandToDB.price)                               
+        return setGlandToDB
 def create_glands(element, glandInDB,checkinname, quantity,position):
     # print(element) 
     # print(glandInDB.price) 
