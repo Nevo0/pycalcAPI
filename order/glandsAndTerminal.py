@@ -2,10 +2,13 @@ from cmath import log
 from random import randrange
 from django.shortcuts import render
 from django.db.models import Count
+import pytz
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from .serializers import OrderSerializer
 import json
 import datetime
+import time
 import uuid
 from box.models import Box
 from order.models import Product, Purchaser,Order, Terminal, Terminals,Gladn, SizeGladn, Gladns,SizeTerminal,TypeTerminal, Component
@@ -26,13 +29,16 @@ def getGlands(request):
         # code=loads[0]['code']
         if len(loads)>0:
             for element in loads:
+                boxs_id=element['id']
                 material=element['material']
                 quantity=element['quantity']
                 status=element['status']
                 glands=element['glands']
                 terminals=element['terminal']
                 selectBox=element['selectBox']
+                # print(boxs_id)
                 # print(glands)
+                # print(terminals)
                
                 
                 objectTerminals=list(map(lambda x: print_terminals(x,terminals[x]), terminals))
@@ -47,10 +53,10 @@ def getGlands(request):
                 objectComponentsTerminals= print_componentsTerminals(objectTerminals)
                 objectComponentsglands= print_componentsGlands(objectGlands)
 
-                # print(filtered_list_none_terminals_sum)
-                # print(filtered_list_none_glands_sum)
                 len_terminals=len(filtered_list_none_terminals_sum)
                 len_glands=len(filtered_list_none_glands_sum)
+                # print(len_terminals)
+                # print(len_glands)
                 component = Component.objects.filter(
                     produkt_glands__in=filtered_list_none_glands_sum,                    
                 )               
@@ -69,7 +75,6 @@ def getGlands(request):
                 # print(component_filter)    
                 # print(component_filter[0].produkt_terminal.all())
                       
-
                 if len_terminals>0:                    
                     component_filter = component_filter.filter(
                         produkt_terminal__in=filtered_list_none_terminals_sum,                    
@@ -79,6 +84,7 @@ def getGlands(request):
                             produkt_glands__in=filtered_list_none_glands_sum,                    
                         )                
                 
+                # print(component_filter)
                 # print(component_filter2)
                 len_component_filter=len(component_filter)
                 
@@ -102,30 +108,34 @@ def getGlands(request):
                     pass
                     # jakas maskra
                 # print(component_filter)
-                product=addProduct( component_filter , selectBox, quantity)
+                product=addProduct( component_filter , selectBox, quantity, boxs_id)
                 # print(product) 
                 products.append(product)
             # print(loads)
             
            
             getPurchaser=addPurchaser(name ,email, company, nip)
-            addOrder(getPurchaser, products)
+            serializerOrder= addOrder(getPurchaser, products)
 
     routes = [
-        "glands"
+        serializerOrder
     ]
     return Response(routes)
 def addOrder(purchaser, products):
-    time= datetime.datetime.now().strftime ("%Y-%m-%d--%H-%M-%S")    
+    # print(products)
+    time_now= timeNow()
     emial= purchaser.email
-    name= time +"__" +emial
+    name= time_now +"__" +emial
     price=oPrice(products)
     order=Order(name=name, price=price , vat= 0 ,purchaser=purchaser)
-    order.save()
+    order.save() 
     order.product.set(products)
-    return
-    
+    serializer = OrderSerializer(order, many=False)    
+    # print(serializer.data)
+    return serializer.data 
+
 def oPrice(purchaser):
+    
     price=0
     for element in purchaser:
         price =price + element.price
@@ -146,11 +156,11 @@ def purchaserName(name,email):
     return namep
     pass
 
-def addProduct( component , selectBox, quantity):
+def addProduct( component , selectBox, quantity, box_id):
     id = uuid.UUID(selectBox[0])
     # box=Box.objects.get(id=selectBox[0]).exist()
     try:
-       box=Box.objects.get(id=id)
+       box=Box.objects.get(id=id)       
     except Box.DoesNotExist:
         print("tu trzeba coś wymyślić bo nie może być takiej sytuacji ze nie ma boxa")
         box = None
@@ -158,9 +168,12 @@ def addProduct( component , selectBox, quantity):
     price=createProduktprice(component , box, quantity)    
     try:
        product=Product.objects.get(name=name)
+       if product.boxs_id != box_id :
+            product.boxs_id = box_id
+            product.save() 
     except Product.DoesNotExist:
-        product = Product(name= name, box=box , quantity=quantity , price= price)
-        product.save()
+        product = Product(name= name, box=box , quantity=quantity , price= price, boxs_id=box_id)
+        product.save()        
         product.component.set([component])
     
     return   product
@@ -169,8 +182,8 @@ def addProduct( component , selectBox, quantity):
 def createProduktprice(component , box, quantity):
     componentPrice=component.price
     boxPrice=box.price
-    print(componentPrice)
-    print(boxPrice)
+    # print(componentPrice)
+    # print(boxPrice)
     price= (componentPrice+boxPrice)*quantity
     return price
 
@@ -222,11 +235,13 @@ def addComponent( glands , terminals):
     component.save()
     return component
 def create_price(glandsOrTerminals):
+
     
     price= 0
     if glandsOrTerminals != None:        
         for element in glandsOrTerminals:
             if element != None: 
+                # print(element)    
                 # print(element.price)    
                 price =price + element.price
     
@@ -347,7 +362,7 @@ def handlerGlands(object):
         else:         
             var_create_gland=create_gland(size,typ, checkinname) 
             print("var_create_gland")
-            print(var_create_gland)
+            # print(var_create_gland)
             lista.append(create_glands(element, var_create_gland,checkinname, quantity, position))
     return lista
 
@@ -364,7 +379,7 @@ def create_gland(size,typ,checkinname):
 def create_glands(element, glandInDB,checkinname, quantity,position):
     # print(element) 
     # print(glandInDB.price) 
-    price= glandInDB.price * quantity * 2   
+    price= glandInDB.price * quantity  
     gladns = Gladns(name = checkinname+"__"+str(quantity)+"__"+position,  gladn=glandInDB, position = position , price=price, quantity=quantity)
     gladns.save()
     return gladns
@@ -408,10 +423,23 @@ def create_terminal(size,typ,checkinname):
         setTerminalToDB.save()
         return setTerminalToDB
 def create_terminals(element, terminalInDB,checkinname, quantity,position):
-    price= terminalInDB.price * quantity * 2   
+    price= terminalInDB.price * quantity  
     terminals = Terminals(name = checkinname+"__"+str(quantity)+"__"+position,  terminal=terminalInDB, position = position , price=price, quantity=quantity)
     terminals.save()
     return terminals
+
+def timeNow():
+    time_now=datetime.datetime.now(pytz.timezone("Europe/Warsaw")).strftime ("%Y-%m-%d--%H-%M-%S")    
+    time2= datetime.datetime.utcnow().timestamp()   
+    # print(time2) 
+    # print(datetime.tzinfo()) 
+    # print(datetime.datetime.now(datetime.timezone.utc))
+    # print(datetime.datetime.fromtimestamp(time2).strftime('%Y-%m-%d %H:%M:%S.%f'))
+    # print(datetime.datetime.utcfromtimestamp(time2).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3])
+    # print(datetime.datetime.utcfromtimestamp(time2).strftime('%Y-%m-%d %H:%M:%S.%f'))
+    # print(datetime.datetime.now(pytz.timezone("Europe/Warsaw")).strftime ("%Y-%m-%d--%H-%M-%S"))
+    # print(pytz.all_timezones)     
+    return time_now    
 
 
 

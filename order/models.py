@@ -157,6 +157,7 @@ class Product(models.Model):
     box = models.ForeignKey(Box, on_delete=models.CASCADE, null=True, blank=True)   
     quantity  = models.IntegerField(default=0) 
     price  = models.IntegerField(default=0)     
+    boxs_id  = models.IntegerField(default=0)     
     component = models.ManyToManyField(Component)
     create = models.DateTimeField(auto_now_add=True)
     update = models.DateTimeField(auto_now=True) 

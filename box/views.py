@@ -26,6 +26,7 @@ def getProjekts(request):
     serializer = BoxSerializers(projets, many=True)
     # serializer = TerminaSerializers(projets, many=True)
     # trzeba dodac data atrybut
+    # print(serializer.data)
     return Response(serializer.data)
     # trzeba dodac data atrybut
     return JsonResponse(max_hubs_side_c_d)
